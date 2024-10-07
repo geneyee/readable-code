@@ -1,11 +1,9 @@
 package cleancode.minesweeper.tobe;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.stream.Stream;
-
 
 public class MinesweeperGame {
     // 상수 추출 단축키 ctrl alt c
@@ -30,23 +28,31 @@ public class MinesweeperGame {
         initializeGame();
 
         while (true) {
-            showBoard();
+            try {
+                showBoard();
 
-            if (doesUserWinTheGame()) {
-                System.out.println("지뢰를 모두 찾았습니다. GAME CLEAR!");
-                break;
-            }
-            if (doesUserLoseTheGame()) {
-                System.out.println("지뢰를 밟았습니다. GAME OVER!");
-                break;
-            }
+                if (doesUserWinTheGame()) {
+                    System.out.println("지뢰를 모두 찾았습니다. GAME CLEAR!");
+                    break;
+                }
+                if (doesUserLoseTheGame()) {
+                    System.out.println("지뢰를 밟았습니다. GAME OVER!");
+                    break;
+                }
 
-            String cellInput = getCellInputFromUser();
-            String userActionInput = getUserActionInputFromUser();
-            actOnCell(cellInput, userActionInput); //early return 하기 위해 메서드 추출
+                String cellInput = getCellInputFromUser();
+                String userActionInput = getUserActionInputFromUser();
+                actOnCell(cellInput, userActionInput);
+//            } catch (IllegalArgumentException e) {
+            } catch (AppException e) { //우리가 의도적으로 던진 예외
+                System.out.println(e.getMessage());
+            } catch (Exception e) { // 예상하지 못한 예외 처리
+                System.out.println("프로그램에 문제가 생겼습니다.");
+                e.printStackTrace(); // 실무에서는 log 남김
+            }
         }
     }
-    //early return
+
     private static void actOnCell(String cellInput, String userActionInput) {
         int selectedColIndex = getSelectedColIndex(cellInput);
         int selectedRowIndex = getSelectedRowIndex(cellInput);
@@ -58,7 +64,7 @@ public class MinesweeperGame {
         }
 
         if (doesUserChooseToOpenCell(userActionInput)) {
-            if (isLandMineCell(selectedColIndex, selectedRowIndex)) {
+            if (isLandMineCell(selectedRowIndex, selectedColIndex)) {
                 BOARD[selectedRowIndex][selectedColIndex] = LAND_MINE_SIGN;
                 changeGameStatusToLose();
                 return;
@@ -68,15 +74,16 @@ public class MinesweeperGame {
             checkIfGameIsOver();
             return;
         }
-        System.out.println("잘못된 번호를 선택하셨습니다.");
-
+//        System.out.println("잘못된 번호를 선택하셨습니다.");
+//        throw new IllegalArgumentException("잘못된 번호를 선택하셨습니다."); // 의도하지 않은 예외
+        throw new AppException("잘못된 번호를 선택하셨습니다."); // 의도한 예외
     }
 
     private static void changeGameStatusToLose() {
         gameStatus = -1;
     }
 
-    private static boolean isLandMineCell(int selectedColIndex, int selectedRowIndex) {
+    private static boolean isLandMineCell(int selectedRowIndex, int selectedColIndex) {
         return LAND_MINES[selectedRowIndex][selectedColIndex];
     }
 
@@ -126,11 +133,12 @@ public class MinesweeperGame {
     private static void changeGameStatusToWin() {
         gameStatus = 1;
     }
-    // 중첩문 추상화
+
     private static boolean isAllCellOpened() {
         return Arrays.stream(BOARD)
                 .flatMap(Arrays::stream)
-                .noneMatch(cell -> cell.equals(CLOSED_CELL_SIGN));
+                .noneMatch(cell -> CLOSED_CELL_SIGN.equals(cell)); //nullpointException 방지
+                // .noneMatch(cell -> cell.equals(CLOSED_CELL_SIGN));
     }
 
     // stream 풀어서
@@ -139,8 +147,8 @@ public class MinesweeperGame {
         Stream<String> stringStream = streamArrayStream
                 .flatMap(stringArray -> {
                     Stream<String> stringStream2 = Arrays.stream(stringArray);
-          return stringStream2;
-        });
+                    return stringStream2;
+                });
         return stringStream
                 .noneMatch(cell -> cell.equals(CLOSED_CELL_SIGN));
     }
@@ -158,7 +166,13 @@ public class MinesweeperGame {
     }
 
     private static int convertRowFrom(char cellInputRow) {
-        return Character.getNumericValue(cellInputRow) - 1;
+        int rowIndex = Character.getNumericValue(cellInputRow) - 1;
+        if (rowIndex >= BOARD_ROW_SIZE) {
+            throw new AppException("잘못된 입력입니다.");
+//            throw new IllegalArgumentException("잘못된 입력입니다.");
+        }
+
+        return rowIndex;
     }
 
     private static int convertColFrom(char cellInputCol) {
@@ -184,7 +198,9 @@ public class MinesweeperGame {
             case 'j':
                 return 9;
             default:
-                return -1;
+//                return -1;
+//                throw new IllegalArgumentException("잘못된 값을 입력하셨습니다.");
+                throw new AppException("잘못된 값을 입력하셨습니다.");
         }
     }
 
@@ -206,22 +222,22 @@ public class MinesweeperGame {
                 BOARD[row][col] = CLOSED_CELL_SIGN;
             }
         }
-        
+
         for (int i = 0; i < LAND_MINE_COUNT; i++) {
             int col = new Random().nextInt(BOARD_COL_SIZE);
             int row = new Random().nextInt(BOARD_ROW_SIZE);
             LAND_MINES[row][col] = true;
         }
-        
+
         for (int row = 0; row < BOARD_ROW_SIZE; row++) {
             for (int col = 0; col < BOARD_COL_SIZE; col++) {
-                if (isLandMineCell(row, col)) { // 지뢰셀이라면
+                if (isLandMineCell(row, col)) {
                     NEARBY_LAND_MINE_COUNTS[row][col] = 0;
                     continue;
                 }
-                // 지뢰셀이 아니라면
                 int count = countNearbyLandMines(row, col);
                 NEARBY_LAND_MINE_COUNTS[row][col] = count;
+
 
 /*                if (!isLandMineCell(row, col)) { // 지뢰셀이 아니라면
                     int count = countNearbyLandMines(row, col);
@@ -233,7 +249,7 @@ public class MinesweeperGame {
             }
         }
     }
-    // 근방에 있는 지뢰들을 세는 것을 메서드로 추상화
+
     private static int countNearbyLandMines(int row, int col) {
         int count = 0;
         if (row - 1 >= 0 && col - 1 >= 0 && isLandMineCell(row - 1, col - 1)) {
@@ -276,7 +292,7 @@ public class MinesweeperGame {
         if (!BOARD[row][col].equals(CLOSED_CELL_SIGN)) {
             return;
         }
-        if (LAND_MINES[row][col]) {
+        if (isLandMineCell(row, col)) {
             return;
         }
         if (NEARBY_LAND_MINE_COUNTS[row][col] != 0) {
