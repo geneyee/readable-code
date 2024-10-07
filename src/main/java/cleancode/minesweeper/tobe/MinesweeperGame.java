@@ -22,13 +22,16 @@ public class MinesweeperGame {
     public static final String LAND_MINE_SIGN = "☼";
     public static final String CLOSED_CELL_SIGN = "□";
     public static final String OPENED_CELL_SIGN = "■";
+
     private static int gameStatus = 0; // 0: 게임 중, 1: 승리, -1: 패배
 
     public static void main(String[] args) {
         showGameStartComments();
         initializeGame();
+
         while (true) {
             showBoard();
+
             if (doesUserWinTheGame()) {
                 System.out.println("지뢰를 모두 찾았습니다. GAME CLEAR!");
                 break;
@@ -37,6 +40,7 @@ public class MinesweeperGame {
                 System.out.println("지뢰를 밟았습니다. GAME OVER!");
                 break;
             }
+
             String cellInput = getCellInputFromUser();
             String userActionInput = getUserActionInputFromUser();
             actOnCell(cellInput, userActionInput); //early return 하기 위해 메서드 추출
@@ -46,17 +50,20 @@ public class MinesweeperGame {
     private static void actOnCell(String cellInput, String userActionInput) {
         int selectedColIndex = getSelectedColIndex(cellInput);
         int selectedRowIndex = getSelectedRowIndex(cellInput);
+
         if (doesUserChooseToPlantFlag(userActionInput)) {
             BOARD[selectedRowIndex][selectedColIndex] = FLAG_SIGN;
             checkIfGameIsOver();
             return;
         }
+
         if (doesUserChooseToOpenCell(userActionInput)) {
             if (isLandMineCell(selectedColIndex, selectedRowIndex)) {
                 BOARD[selectedRowIndex][selectedColIndex] = LAND_MINE_SIGN;
                 changeGameStatusToLose();
                 return;
             }
+
             open(selectedRowIndex, selectedColIndex);
             checkIfGameIsOver();
             return;
