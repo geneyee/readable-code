@@ -3,7 +3,6 @@ package cleancode.minesweeper.tobe;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.stream.Stream;
 
 public class MinesweeperGame {
     // 상수 추출 단축키 ctrl alt c
@@ -12,14 +11,15 @@ public class MinesweeperGame {
     public static final int BOARD_ROW_SIZE = 8;
     public static final int BOARD_COL_SIZE = 10;
     public static final Scanner SCANNER = new Scanner(System.in);
-    private static final String[][] BOARD = new String[BOARD_ROW_SIZE][BOARD_COL_SIZE];
-    private static final Integer[][] NEARBY_LAND_MINE_COUNTS = new Integer[BOARD_ROW_SIZE][BOARD_COL_SIZE];
-    private static final boolean[][] LAND_MINES = new boolean[BOARD_ROW_SIZE][BOARD_COL_SIZE];
+//    private static final String[][] BOARD = new String[BOARD_ROW_SIZE][BOARD_COL_SIZE]; //지뢰게임 판
+    private static final Cell[][] BOARD = new Cell[BOARD_ROW_SIZE][BOARD_COL_SIZE]; //지뢰게임 판
+//    private static final Integer[][] NEARBY_LAND_MINE_COUNTS = new Integer[BOARD_ROW_SIZE][BOARD_COL_SIZE]; // 지뢰숫자
+//    private static final boolean[][] LAND_MINES = new boolean[BOARD_ROW_SIZE][BOARD_COL_SIZE]; // 하나의 셀이 지뢰인지 아닌지 판단하는
     public static final int LAND_MINE_COUNT = 10;
-    public static final String FLAG_SIGN = "⚑";
-    public static final String LAND_MINE_SIGN = "☼";
-    public static final String CLOSED_CELL_SIGN = "□";
-    public static final String OPENED_CELL_SIGN = "■";
+//    public static final String FLAG_SIGN = "⚑";
+//    public static final String LAND_MINE_SIGN = "☼";
+//    public static final String CLOSED_CELL_SIGN = "□";
+//    public static final String OPENED_CELL_SIGN = "■";
 
     private static int gameStatus = 0; // 0: 게임 중, 1: 승리, -1: 패배
 
@@ -58,14 +58,15 @@ public class MinesweeperGame {
         int selectedRowIndex = getSelectedRowIndex(cellInput);
 
         if (doesUserChooseToPlantFlag(userActionInput)) {
-            BOARD[selectedRowIndex][selectedColIndex] = FLAG_SIGN;
+//            BOARD[selectedRowIndex][selectedColIndex] = Cell.ofFlage();
+            BOARD[selectedRowIndex][selectedColIndex].flage(); // 깃발이 꽂힌 상태
             checkIfGameIsOver();
             return;
         }
 
         if (doesUserChooseToOpenCell(userActionInput)) {
             if (isLandMineCell(selectedRowIndex, selectedColIndex)) {
-                BOARD[selectedRowIndex][selectedColIndex] = LAND_MINE_SIGN;
+                BOARD[selectedRowIndex][selectedColIndex].open();
                 changeGameStatusToLose();
                 return;
             }
@@ -84,7 +85,7 @@ public class MinesweeperGame {
     }
 
     private static boolean isLandMineCell(int selectedRowIndex, int selectedColIndex) {
-        return LAND_MINES[selectedRowIndex][selectedColIndex];
+        return BOARD[selectedRowIndex][selectedColIndex].isLandMine();
     }
 
     private static boolean doesUserChooseToOpenCell(String userActionInput) {
@@ -124,8 +125,8 @@ public class MinesweeperGame {
     }
 
     private static void checkIfGameIsOver() {
-        boolean isAllOpened = isAllCellOpened();
-        if (isAllOpened) {
+        boolean isAllChecked = isAllCellChecked();
+        if (isAllChecked) {
             changeGameStatusToWin();
         }
     }
@@ -133,15 +134,17 @@ public class MinesweeperGame {
     private static void changeGameStatusToWin() {
         gameStatus = 1;
     }
-
-    private static boolean isAllCellOpened() {
+    // 모든 셀이 다 열려있는지 유무 확인
+    private static boolean isAllCellChecked() {
         return Arrays.stream(BOARD)
                 .flatMap(Arrays::stream)
-                .noneMatch(cell -> CLOSED_CELL_SIGN.equals(cell)); //nullpointException 방지
+                .allMatch(Cell::isChecked); // 모든 셀이 다 체크 됐는지
+//                .noneMatch(Cell::isUnchecked); 체크되지 않은 셀이 없는지 = 다 체크해야 한다.(부정부정)
+//                .noneMatch(Cell::isClosed); //nullpointException 방지
                 // .noneMatch(cell -> cell.equals(CLOSED_CELL_SIGN));
     }
 
-    // stream 풀어서
+/*    // stream 풀어서
     private static boolean isAllCellOpened2() {
         Stream<String[]> streamArrayStream = Arrays.stream(BOARD);
         Stream<String> stringStream = streamArrayStream
@@ -151,8 +154,8 @@ public class MinesweeperGame {
                 });
         return stringStream
                 .noneMatch(cell -> cell.equals(CLOSED_CELL_SIGN));
-    }
-
+    }*/
+/*
     private static boolean isAllCellOpenedOld() {
         boolean isAllOpened = true;
         for (int row = 0; row < BOARD_ROW_SIZE; row++) {
@@ -163,7 +166,7 @@ public class MinesweeperGame {
             }
         }
         return isAllOpened;
-    }
+    }*/
 
     private static int convertRowFrom(char cellInputRow) {
         int rowIndex = Character.getNumericValue(cellInputRow) - 1;
@@ -203,13 +206,13 @@ public class MinesweeperGame {
                 throw new AppException("잘못된 값을 입력하셨습니다.");
         }
     }
-
+    // 콘솔에 보드판 그리는 메서드
     private static void showBoard() {
         System.out.println("   a b c d e f g h i j");
         for (int row = 0; row < BOARD_ROW_SIZE; row++) {
             System.out.printf("%d  ", row + 1);
             for (int col = 0; col < BOARD_COL_SIZE; col++) {
-                System.out.print(BOARD[row][col] + " ");
+                System.out.print(BOARD[row][col].getSign() + " ");
             }
             System.out.println();
         }
@@ -219,24 +222,27 @@ public class MinesweeperGame {
     private static void initializeGame() {
         for (int row = 0; row < BOARD_ROW_SIZE; row++) {
             for (int col = 0; col < BOARD_COL_SIZE; col++) {
-                BOARD[row][col] = CLOSED_CELL_SIGN;
+//                BOARD[row][col] = Cell.ofClosed();
+                BOARD[row][col] = Cell.create(); // 빈셀을 만들어서 board에 할당
             }
         }
 
         for (int i = 0; i < LAND_MINE_COUNT; i++) {
             int col = new Random().nextInt(BOARD_COL_SIZE);
             int row = new Random().nextInt(BOARD_ROW_SIZE);
-            LAND_MINES[row][col] = true;
+//            LAND_MINES[row][col] = true; // 지뢰 설치
+            BOARD[row][col].turnOnLandMine(); // 지뢰셀
         }
 
         for (int row = 0; row < BOARD_ROW_SIZE; row++) {
             for (int col = 0; col < BOARD_COL_SIZE; col++) {
                 if (isLandMineCell(row, col)) {
-                    NEARBY_LAND_MINE_COUNTS[row][col] = 0;
+//                    NEARBY_LAND_MINE_COUNTS[row][col] = 0;
                     continue;
                 }
                 int count = countNearbyLandMines(row, col);
-                NEARBY_LAND_MINE_COUNTS[row][col] = count;
+//                NEARBY_LAND_MINE_COUNTS[row][col] = count;
+                BOARD[row][col].updateNearbyLandMineCount(count);
 
 
 /*                if (!isLandMineCell(row, col)) { // 지뢰셀이 아니라면
@@ -284,23 +290,34 @@ public class MinesweeperGame {
         System.out.println("지뢰찾기 게임 시작!");
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     }
-
+    // open(selectedRowIndex, selectedColIndex); 의 open 메소드
+    // 재귀함수 - 지뢰찾기에서 어떠한 셀을 선택했을 때, 그 주변에 인접한 셀이 비어있으면 한 번에 열리는 것을 나타내기 위해
+    // 이 재귀함수는 인접한 비어있는 셀을 열고 숫자이거나 지뢰일 때 멈춘다.
     private static void open(int row, int col) {
-        if (row < 0 || row >= BOARD_ROW_SIZE || col < 0 || col >= BOARD_COL_SIZE) {
+        if (row < 0 || row >= BOARD_ROW_SIZE || col < 0 || col >= BOARD_COL_SIZE) {// 판 안에 있는지 확인
+            return;// 저 범위를 벗어나면 정상적이지 않은 것이니 return
+        }
+//        if (BOARD[row][col].doesNotClosed()) {// 이미 열렸는지 확인
+        if (BOARD[row][col].isOpened()) {// 이미 열렸는지 확인
+            return;// 이미 열렸다면 return
+        }
+        if (isLandMineCell(row, col)) {// 지뢰 셀인지 확인
             return;
         }
-        if (!BOARD[row][col].equals(CLOSED_CELL_SIGN)) {
+
+        BOARD[row][col].open();
+
+//        if (NEARBY_LAND_MINE_COUNTS[row][col] != 0) {// 지뢰카운트가 있다면
+        if (BOARD[row][col].hasLandMineCount()) {// 지뢰카운트가 있다면 - 숫자가 있다면
+//            BOARD[row][col] = Cell.ofNearbyLandMineCount((NEARBY_LAND_MINE_COUNTS[row][col]));// 숫자를 표기하고
+//            BOARD[row][col].open();
             return;
         }
-        if (isLandMineCell(row, col)) {
-            return;
-        }
-        if (NEARBY_LAND_MINE_COUNTS[row][col] != 0) {
-            BOARD[row][col] = String.valueOf(NEARBY_LAND_MINE_COUNTS[row][col]);
-            return;
-        } else {
-            BOARD[row][col] = OPENED_CELL_SIGN;
-        }
+//        else {// 아무것도 아니라면
+////            BOARD[row][col] = Cell.ofOpened();// 열려있는 빈 셀
+//            BOARD[row][col].open();
+//        }
+        // 선택한 셀 주변에 있는 셀들을 재귀함수로 도는 것
         open(row - 1, col - 1);
         open(row - 1, col);
         open(row - 1, col + 1);
