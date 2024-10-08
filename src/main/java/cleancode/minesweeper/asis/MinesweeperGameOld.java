@@ -1,10 +1,13 @@
-package cleancode.minesweeper.tobe;
+package cleancode.minesweeper.asis;
+
+import cleancode.minesweeper.tobe.GameException;
+import cleancode.minesweeper.tobe.Cell;
 
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
-public class MinesweeperGame {
+public class MinesweeperGameOld {
     // 상수 추출 단축키 ctrl alt c
     // 메서드 추출 단축키 ctrl alt m
     // 변수명 변경 단축키 shift f6
@@ -44,7 +47,7 @@ public class MinesweeperGame {
                 String userActionInput = getUserActionInputFromUser();
                 actOnCell(cellInput, userActionInput);
 //            } catch (IllegalArgumentException e) {
-            } catch (AppException e) { //우리가 의도적으로 던진 예외
+            } catch (GameException e) { //우리가 의도적으로 던진 예외
                 System.out.println(e.getMessage());
             } catch (Exception e) { // 예상하지 못한 예외 처리
                 System.out.println("프로그램에 문제가 생겼습니다.");
@@ -77,7 +80,7 @@ public class MinesweeperGame {
         }
 //        System.out.println("잘못된 번호를 선택하셨습니다.");
 //        throw new IllegalArgumentException("잘못된 번호를 선택하셨습니다."); // 의도하지 않은 예외
-        throw new AppException("잘못된 번호를 선택하셨습니다."); // 의도한 예외
+        throw new GameException("잘못된 번호를 선택하셨습니다."); // 의도한 예외
     }
 
     private static void changeGameStatusToLose() {
@@ -171,7 +174,7 @@ public class MinesweeperGame {
     private static int convertRowFrom(char cellInputRow) {
         int rowIndex = Character.getNumericValue(cellInputRow) - 1;
         if (rowIndex >= BOARD_ROW_SIZE) {
-            throw new AppException("잘못된 입력입니다.");
+            throw new GameException("잘못된 입력입니다.");
 //            throw new IllegalArgumentException("잘못된 입력입니다.");
         }
 
@@ -203,7 +206,7 @@ public class MinesweeperGame {
             default:
 //                return -1;
 //                throw new IllegalArgumentException("잘못된 값을 입력하셨습니다.");
-                throw new AppException("잘못된 값을 입력하셨습니다.");
+                throw new GameException("잘못된 값을 입력하셨습니다.");
         }
     }
     // 콘솔에 보드판 그리는 메서드
