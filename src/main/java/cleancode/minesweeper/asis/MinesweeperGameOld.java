@@ -1,7 +1,7 @@
 package cleancode.minesweeper.asis;
 
 import cleancode.minesweeper.tobe.GameException;
-import cleancode.minesweeper.tobe.Cell;
+import cleancode.minesweeper.tobe.Cell_OCP;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -15,7 +15,7 @@ public class MinesweeperGameOld {
     public static final int BOARD_COL_SIZE = 10;
     public static final Scanner SCANNER = new Scanner(System.in);
 //    private static final String[][] BOARD = new String[BOARD_ROW_SIZE][BOARD_COL_SIZE]; //지뢰게임 판
-    private static final Cell[][] BOARD = new Cell[BOARD_ROW_SIZE][BOARD_COL_SIZE]; //지뢰게임 판
+    private static final Cell_OCP[][] BOARD = new Cell_OCP[BOARD_ROW_SIZE][BOARD_COL_SIZE]; //지뢰게임 판
 //    private static final Integer[][] NEARBY_LAND_MINE_COUNTS = new Integer[BOARD_ROW_SIZE][BOARD_COL_SIZE]; // 지뢰숫자
 //    private static final boolean[][] LAND_MINES = new boolean[BOARD_ROW_SIZE][BOARD_COL_SIZE]; // 하나의 셀이 지뢰인지 아닌지 판단하는
     public static final int LAND_MINE_COUNT = 10;
@@ -141,7 +141,7 @@ public class MinesweeperGameOld {
     private static boolean isAllCellChecked() {
         return Arrays.stream(BOARD)
                 .flatMap(Arrays::stream)
-                .allMatch(Cell::isChecked); // 모든 셀이 다 체크 됐는지
+                .allMatch(Cell_OCP::isChecked); // 모든 셀이 다 체크 됐는지
 //                .noneMatch(Cell::isUnchecked); 체크되지 않은 셀이 없는지 = 다 체크해야 한다.(부정부정)
 //                .noneMatch(Cell::isClosed); //nullpointException 방지
                 // .noneMatch(cell -> cell.equals(CLOSED_CELL_SIGN));
@@ -226,7 +226,7 @@ public class MinesweeperGameOld {
         for (int row = 0; row < BOARD_ROW_SIZE; row++) {
             for (int col = 0; col < BOARD_COL_SIZE; col++) {
 //                BOARD[row][col] = Cell.ofClosed();
-                BOARD[row][col] = Cell.create(); // 빈셀을 만들어서 board에 할당
+                BOARD[row][col] = Cell_OCP.create(); // 빈셀을 만들어서 board에 할당
             }
         }
 

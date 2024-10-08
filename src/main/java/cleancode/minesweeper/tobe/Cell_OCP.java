@@ -1,6 +1,6 @@
 package cleancode.minesweeper.tobe;
 
-public class Cell {
+public class Cell_OCP {
 
     private static final String FLAG_SIGN = "⚑";
     private static final String LAND_MINE_SIGN = "☼";
@@ -18,7 +18,7 @@ public class Cell {
     // (깃발이 꽂혔지만 사용자가 지뢰가 있을거라고 임의로 생각한 셀이니까 아직 닫혀있음)
 
     // 정적팩토리 메서드의 사용으로 생성자의 public을 private로 변경
-    private Cell(int nearbyLandMineCount, boolean isLandMine, boolean isFlagged, boolean isOpened) {
+    private Cell_OCP(int nearbyLandMineCount, boolean isLandMine, boolean isFlagged, boolean isOpened) {
         this.nearbyLandMineCount = nearbyLandMineCount;
         this.isLandMine = isLandMine;
         this.isFlagged = isFlagged;
@@ -26,12 +26,12 @@ public class Cell {
 
     // 정적팩토리 메서드(강사님의 방법) - 이름을 별도로 줄 수 있음
     // 정적팩토리 메서드로 생성자의 역할을 대신함
-    public static Cell of(int nearbyLandMineCount, boolean isLandMine, boolean isFlagged, boolean isOpened) {
-        return new Cell(nearbyLandMineCount, isLandMine, isFlagged, isOpened);
+    public static Cell_OCP of(int nearbyLandMineCount, boolean isLandMine, boolean isFlagged, boolean isOpened) {
+        return new Cell_OCP(nearbyLandMineCount, isLandMine, isFlagged, isOpened);
     }
 
     // 빈 셀 생성
-    public static Cell create() {
+    public static Cell_OCP create() {
         return of(0, false, false, false);
     }
 
